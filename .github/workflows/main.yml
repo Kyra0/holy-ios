@@ -1,0 +1,28 @@
+name: Build iOS IPA
+on: [workflow_dispatch]
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm install @capacitor/cli @capacitor/ios
+      - name: Build Project
+        run: |
+          npm run build --if-present
+          npx cap sync ios
+      - name: Create IPA (Simulator/Debug)
+        run: |
+          mkdir -p build/Payload
+          cp -r ios/App/App build/Payload/
+          cd build && zip -r Holy.ipa Payload
+      - name: Upload IPA
+        uses: actions/upload-artifact@v3
+        with:
+          name: Holy-Package
+          path: build/Holy.ipa
